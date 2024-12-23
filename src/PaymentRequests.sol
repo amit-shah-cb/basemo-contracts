@@ -11,21 +11,27 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155BurnableUpgradeable.sol";
 
-contract PaymentRequests is  Initializable,OwnableUpgradeable,ERC1155Upgradeable,ERC1155URIStorageUpgradeable,ERC20Upgradeable, ERC20BurnableUpgradeable,ERC20PermitUpgradeable, UUPSUpgradeable  {
-    
-     /// @custom:storage-location erc7201:coinbase.storage.PointsUpgradeable 
-    struct PointsUpgradeableStorage {
-       uint rewardRateBps_;
-       uint256[] lootBoxRarity_;
-       mapping(uint256 productId => uint256 redeem) rewardRedemption;
+contract PaymentRequests is  Initializable,OwnableUpgradeable,ERC1155Upgradeable,ERC1155URIStorageUpgradeable, UUPSUpgradeable  {
+     struct PaymentData {
+        address payee;
+        uint256 amount;
+        bool paid;
+        string description;
     }
 
-    // keccak256(abi.encode(uint256(keccak256("coinbase.storage.PointsUpgradeable")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant PointsUpgradeableStorageLocation = 0x102ca4916efc5d30e5730936056d8c2fd2e983f4ec49165e465c9b7ff32d4800;
-    //To use:  SlicerPurchasableHookStorage storage $ = _getSlicerPurchasableHookStorage(); $.x = 1;
-    function _getPointsUpgradeableStorage() private pure returns (PointsUpgradeableStorage storage $) {
+     /// @custom:storage-location erc7201:payment.requests.storage
+    struct PaymentRequestStorage {
+        // tokenId => PaymentData
+        mapping(uint256 => PaymentData) paymentDetails;
+        uint256 nextTokenId;
+    }
+
+   
+    bytes32 private constant PAYMENT_STORAGE_LOCATION = 0x0000000000000000000000000000000000000000000000000000000000000000; // Calculate this value
+
+    function _getPaymentStorage() private pure returns (PaymentRequestStorage storage $) {
         assembly {
-            $.slot := PointsUpgradeableStorageLocation
+            $.slot := PAYMENT_STORAGE_LOCATION
         }
     }
 
@@ -36,10 +42,10 @@ contract PaymentRequests is  Initializable,OwnableUpgradeable,ERC1155Upgradeable
 
     function initialize(address initialOwner) public initializer {
         OwnableUpgradeable.__Ownable_init(initialOwner);
-        ERC20Upgradeable.__ERC20_init("Points", "PTS");
-        //we dont want to call the initializer of ERC20Upgradeable again
-        ERC20BurnableUpgradeable.__ERC20Burnable_init();
-        ERC20PermitUpgradeable.__ERC20Permit_init("Points");
+        // ERC20Upgradeable.__ERC20_init("Points", "PTS");
+        // //we dont want to call the initializer of ERC20Upgradeable again
+        // ERC20BurnableUpgradeable.__ERC20Burnable_init();
+        // ERC20PermitUpgradeable.__ERC20Permit_init("Points");
         UUPSUpgradeable.__UUPSUpgradeable_init();
         // PointsUpgradeableStorage storage $ = _getPointsUpgradeableStorage();
         ERC1155Upgradeable.__ERC1155_init("uri");
@@ -62,15 +68,36 @@ contract PaymentRequests is  Initializable,OwnableUpgradeable,ERC1155Upgradeable
         return super.uri(tokenId);
     }
 
-    
-    function mint(address to, uint256 amount) public onlyOwner {
-        _mint(to, amount);
+    function createPaymentRequest(
+        address payee,
+        uint256 amount,
+        string calldata description
+    ) external returns (uint256) {
+        PaymentRequestStorage storage $ = _getPaymentStorage();
+        uint256 tokenId = $.nextTokenId++;
+        
+        $.paymentDetails[tokenId] = PaymentData({
+            payee: payee,
+            amount: amount,
+            paid: false,
+            description: description
+        });
+
+        _mint(payee, tokenId, 1, "");
+        
+        // emit PaymentRequestCreated(tokenId, payee, amount, description);
+        
+        return tokenId;
     }
 
-    function decimals() public view virtual override returns (uint8) {
-        //same decimals as USDC token
-        return 6;
+    function getPaymentDetails(uint256 tokenId) external view returns (PaymentData memory) {
+        return _getPaymentStorage().paymentDetails[tokenId];
     }
+    
+    // function decimals() public view virtual override returns (uint8) {
+    //     //same decimals as USDC token
+    //     return 6;
+    // }
     
     function _authorizeUpgrade(address newImplementation)
         internal

@@ -11,7 +11,7 @@ contract DeployBasedmo is Script {
     PaymentRequests public points;
     ERC1967Proxy proxy;
     address owner;
-
+    
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
