@@ -24,7 +24,7 @@ contract DeployBasedmo is Script {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(implementation.initialize,        
             (owner)));
         pr = PaymentRequests(address(proxy));  
-        pr.createPaymentRequest(usdc, owner, 100, "Test payment request");     
+        pr.createPaymentRequest(usdc, owner, 100, "Pay your share of the rent for January 2025");     
         vm.stopBroadcast();
     }
 }

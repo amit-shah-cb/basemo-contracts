@@ -93,6 +93,8 @@ contract PaymentRequestsTest is Test {
     }
 
     function testPayPaymentRequest() public {
+        bytes32 storageLocation = keccak256(abi.encode(uint256(keccak256("coinbase.storage.PaymentRequests")) - 1)) & ~bytes32(uint256(0xff));
+        console.logBytes32(storageLocation);
     }
 
     function testPayPaymentRequestWithPermit() public {

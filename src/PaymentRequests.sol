@@ -9,6 +9,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Enumer
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract PaymentRequests is  Initializable,OwnableUpgradeable,ERC721EnumerableUpgradeable, UUPSUpgradeable  {
      struct PaymentData {
@@ -24,7 +26,7 @@ contract PaymentRequests is  Initializable,OwnableUpgradeable,ERC721EnumerableUp
     event PaymentRequestPaid(uint256 tokenId);
     event PaymentRequestCancelled(uint256 tokenId);
 
-     /// @custom:storage-location erc7201:payment.requests.storage
+     /// @custom:storage-location erc7201:coinbase.storage.PaymentRequests
     struct PaymentRequestStorage {
         mapping(uint256 => PaymentData) paymentDetails;
         uint256 nextTokenId;
@@ -33,8 +35,8 @@ contract PaymentRequests is  Initializable,OwnableUpgradeable,ERC721EnumerableUp
         mapping(address owner => uint256) _createdBalances;
     }
 
-   
-    bytes32 private constant PAYMENT_STORAGE_LOCATION = 0x0000000000000000000000000000000000000000000000000000000000000000; // Calculate this value
+    //keccak256(abi.encode(uint256(keccak256("coinbase.storage.PaymentRequests")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant PAYMENT_STORAGE_LOCATION = 0x9fe4f3caa6e7bcc6a7c922cbcf4c12b3cca2fd8b3e555039c554d4efe351b300; // Calculate this value
 
     function _getPaymentStorage() private pure returns (PaymentRequestStorage storage $) {
         assembly {
@@ -110,7 +112,7 @@ contract PaymentRequests is  Initializable,OwnableUpgradeable,ERC721EnumerableUp
         $.paymentDetails[tokenId].receiver = address(0);
         $._createdBalances[msg.sender]-=1;        
         _removeTokenFromCreatorEnumeration(msg.sender, tokenId);
-        //send to 0 address
+
         super._burn(tokenId);
         emit PaymentRequestCancelled(tokenId);
         return tokenId;
@@ -127,8 +129,9 @@ contract PaymentRequests is  Initializable,OwnableUpgradeable,ERC721EnumerableUp
         string memory json = Base64.encode(
                 bytes(string(
                     abi.encodePacked(
-                        '{"name": "Payment Request",',
-                        '"image_data": "', getSvg(publicMemo), '",',
+                        '{"name": "Payment Request #', Strings.toString(tokenId), '",',
+                        '"description": "Payment Request from ', Strings.toHexString(paymentData.receiver), ' for ', Strings.toString(paymentData.amount), ' ', Strings.toHexString(paymentData.token),'",',
+                        '"image": "', getSvg(publicMemo), '",',                        
                         '"attributes": []}'
                     )
                 ))
@@ -183,7 +186,9 @@ contract PaymentRequests is  Initializable,OwnableUpgradeable,ERC721EnumerableUp
 
     function getSvg(string memory description) private pure returns (string memory) {
         string memory svg;
-        svg = string.concat("<svg width='350px' height='350px' viewBox='0 0 350 350' fill='none' xmlns='http://www.w3.org/2000/svg'><text x='10' y='175' fill='blue'>",description,"</text></svg>");
+        svg = string.concat("<svg width='350px' height='350px' viewBox='0 0 350 350' xmlns='http://www.w3.org/2000/svg'><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white'>",
+            description,
+            "</text></svg>");
         return svg;
     }  
 
