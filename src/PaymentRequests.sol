@@ -101,7 +101,7 @@ contract PaymentRequests is
         return _getPaymentStorage().paymentDetails[tokenId];
     }
 
-    function settlePaymentRequest(uint256 tokenId) external returns (uint256) {
+    function settlePaymentRequest(uint256 tokenId) external  {
         PaymentRequestStorage storage $ = _getPaymentStorage();
         PaymentData memory paymentData = $.paymentDetails[tokenId];
 
@@ -111,6 +111,7 @@ contract PaymentRequests is
 
         $.paymentDetails[tokenId].paid = true;
         IERC20 token = IERC20(paymentData.token);
+
         bool success = token.transferFrom(
             msg.sender,
             paymentData.receiver,
@@ -119,8 +120,7 @@ contract PaymentRequests is
         if (!success) {
             revert("Transfer failed");
         }
-        emit PaymentRequestPaid(tokenId);
-        return tokenId;
+        emit PaymentRequestPaid(tokenId);        
     }
 
     function cancelPaymentRequest(uint256 tokenId) external returns (uint256) {

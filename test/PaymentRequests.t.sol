@@ -7,6 +7,8 @@ import "forge-std/console.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 import { PaymentRequests } from "../src/PaymentRequests.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 contract PaymentRequestsTest is Test {
     PaymentRequests pr;
     ERC1967Proxy proxy;
@@ -49,11 +51,8 @@ contract PaymentRequestsTest is Test {
         assert(keccak256(abi.encode(paymentData.publicMemo)) == keccak256(abi.encode("Test payment request")));
 
         string memory uri = pr.tokenURI(0);
-        console.log("uri", uri);
-        
-        
+        assert(keccak256(abi.encode(uri)) == keccak256(abi.encode("data:application/json;base64,eyJuYW1lIjogIlBheW1lbnQgUmVxdWVzdCAjMCIsImRlc2NyaXB0aW9uIjogIlBheW1lbnQgUmVxdWVzdCBmcm9tIDB4YjZkNDgwNWJmNjk0M2M1ODc1YzBjN2I2N2VkYTI0YjJiZGFjYmY2ZSBmb3IgMTAwMCAweDgzMzU4Mzg0ZDBjOTZmNTAyNzE1NGUwNzViNmIzOGYzNWU5MTY1MjMiLCJpbWFnZSI6ICI8c3ZnIHdpZHRoPSczNTBweCcgaGVpZ2h0PSczNTBweCcgdmlld0JveD0nMCAwIDM1MCAzNTAnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIGRvbWluYW50LWJhc2VsaW5lPSdtaWRkbGUnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9J3doaXRlJz5UZXN0IHBheW1lbnQgcmVxdWVzdDwvdGV4dD48L3N2Zz4iLCJhdHRyaWJ1dGVzIjogW119")));        
         uint256 tokenIndex = pr.tokenOfOwnerByIndex(payee, 1);
-        console.log("tokenIndex", tokenIndex);
         assert(tokenIndex == 1);
         paymentData = pr.getPaymentDetails(1);
         assert(paymentData.receiver == receiver);
@@ -94,13 +93,76 @@ contract PaymentRequestsTest is Test {
 
     function testPayPaymentRequest() public {
         bytes32 storageLocation = keccak256(abi.encode(uint256(keccak256("coinbase.storage.PaymentRequests")) - 1)) & ~bytes32(uint256(0xff));
-        console.logBytes32(storageLocation);
+        assert(storageLocation == 0x9fe4f3caa6e7bcc6a7c922cbcf4c12b3cca2fd8b3e555039c554d4efe351b300);
     }
 
-    function testPayPaymentRequestWithPermit() public {
-        //TODO: test with permit
-        //First get eip712 approve tx
-        // then run multicall with approve + payPaymentRequest tx
+    function testSettlePaymentRequest() public {
+
+        vm.prank(receiver);
+        pr.createPaymentRequest(usdcAddress, payee, 1000, "Test");
+        vm.stopPrank();
+
+        PaymentRequests.PaymentData memory paymentData = pr.getPaymentDetails(0);
+        assert(paymentData.receiver == receiver);
+        assert(paymentData.payee == payee);
+        assert(paymentData.token == usdcAddress);
+        assert(paymentData.amount == 1000);
+        assert(keccak256(abi.encode(paymentData.publicMemo)) == keccak256(abi.encode("Test")));
+        assert(paymentData.paid == false);
+
+
+        vm.mockCall(
+            usdcAddress,
+            abi.encodeWithSelector(IERC20.transferFrom.selector, payee, receiver, 1000),
+            abi.encode(true)
+        );
+
+        vm.prank(payee);
+        pr.settlePaymentRequest(0);
+        vm.stopPrank();               
+
+        paymentData = pr.getPaymentDetails(0);
+        assert(paymentData.receiver == receiver);
+        assert(paymentData.payee == payee);
+        assert(paymentData.token == usdcAddress);
+        assert(paymentData.amount == 1000);
+        assert(keccak256(abi.encode(paymentData.publicMemo)) == keccak256(abi.encode("Test")));
+        assert(paymentData.paid == true);
+    }
+
+    function testFailedTransferSettlePaymentRequest() public {
+
+        vm.prank(receiver);
+        pr.createPaymentRequest(usdcAddress, payee, 1000, "Test");
+        vm.stopPrank();
+
+        PaymentRequests.PaymentData memory paymentData = pr.getPaymentDetails(0);
+        assert(paymentData.receiver == receiver);
+        assert(paymentData.payee == payee);
+        assert(paymentData.token == usdcAddress);
+        assert(paymentData.amount == 1000);
+        assert(keccak256(abi.encode(paymentData.publicMemo)) == keccak256(abi.encode("Test")));
+        assert(paymentData.paid == false);
+
+
+        vm.mockCall(
+            usdcAddress,
+            abi.encodeWithSelector(IERC20.transferFrom.selector, payee, receiver, 1000),
+            abi.encode(false)
+        );
+
+        vm.prank(payee);
+        pr.settlePaymentRequest(0);
+        vm.stopPrank();               
+
+        vm.expectRevert("Transfer failed");
+        paymentData = pr.getPaymentDetails(0);
+        assert(paymentData.receiver == receiver);
+        assert(paymentData.payee == payee);
+        assert(paymentData.token == usdcAddress);
+        assert(paymentData.amount == 1000);
+        assert(keccak256(abi.encode(paymentData.publicMemo)) == keccak256(abi.encode("Test")));
+        assert(paymentData.paid == false);
     }
 
 
