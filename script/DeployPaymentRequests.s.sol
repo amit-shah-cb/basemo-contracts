@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
+
 import {Script} from "forge-std/Script.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
@@ -24,7 +25,6 @@ contract DeployBasedmo is Script {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(implementation.initialize,        
             (owner)));
         pr = PaymentRequests(address(proxy));  
-        pr.createPaymentRequest(usdc, owner, 100, "Pay your share of the rent for January 2025");     
         vm.stopBroadcast();
     }
 }

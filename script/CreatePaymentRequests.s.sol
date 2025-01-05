@@ -12,18 +12,17 @@ contract DeployBasedmo is Script {
     ERC1967Proxy proxy;
     address owner;
     address usdc;
+    address proxyAddress;
+
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
         owner = vm.envAddress("OWNER");
         usdc = vm.envAddress("USDC_ADDRESS");
-        PaymentRequests implementation = new PaymentRequests();
-        // Deploy the proxy and initialize the contract through the proxy
-       
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(implementation.initialize,        
-            (owner)));
-        pr = PaymentRequests(address(proxy));  
+        proxyAddress = vm.envAddress("PROXY_ADDRESS");
+
+        pr = PaymentRequests(proxyAddress);  
         pr.createPaymentRequest(usdc, owner, 100, "Test payment request");     
         vm.stopBroadcast();
     }

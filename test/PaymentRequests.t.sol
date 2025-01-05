@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 import { PaymentRequests } from "../src/PaymentRequests.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { PaymentRequestsV2 } from "../src/test/PaymentRequestsV2.sol";
+import {Upgrades} from "@openzeppelin-foundry-upgrades/Upgrades.sol";
 
 contract PaymentRequestsTest is Test {
     PaymentRequests pr;
@@ -34,6 +36,7 @@ contract PaymentRequestsTest is Test {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(implementation.initialize, (owner)));
         pr = PaymentRequests(address(proxy));
         assert(pr.owner() == owner);
+
     }
     
     function testCreatePaymentRequest() public {
@@ -163,6 +166,23 @@ contract PaymentRequestsTest is Test {
         assert(paymentData.amount == 1000);
         assert(keccak256(abi.encode(paymentData.publicMemo)) == keccak256(abi.encode("Test")));
         assert(paymentData.paid == false);
+    }
+
+    function testUpgradeability() public {
+        pr = PaymentRequests(address(proxy));
+        assert(pr.owner() == owner);
+
+        Upgrades.upgradeProxy(
+            address(proxy),
+            "PaymentRequestsV2.sol:PaymentRequestsV2",
+             abi.encodeCall(PaymentRequestsV2.initializeV2, ("2.0.0")),
+             owner
+        );        
+
+        PaymentRequestsV2 pr2 = PaymentRequestsV2(address(proxy));
+        assert(keccak256(abi.encode(pr2.getVersion())) == keccak256(abi.encode("2.0.0")));
+        assert(pr2.owner() == owner);
+
     }
 
 

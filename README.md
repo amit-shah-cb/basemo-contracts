@@ -30,3 +30,15 @@ forge script script/DeployBasedmo.s.sol --rpc-url $BASE_SEPOLIA_RPC_URL --accoun
 ## Contact me
 
 Reach out X: https://x.com/stevegodlewski
+
+## Deploying the contract
+
+```bash
+forge script --chain base script/DeployPaymentRequests.s.sol --rpc-url https://mainnet.base.org --broadcast -vvv
+```
+
+## Upgrading the contract
+
+```bash
+forge script --chain base script/UpgradePaymentRequests.s.sol --rpc-url https://mainnet.base.org --broadcast -vvv
+```

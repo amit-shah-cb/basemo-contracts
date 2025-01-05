@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+
 contract PaymentRequests is
     Initializable,
     OwnableUpgradeable,
@@ -43,6 +44,7 @@ contract PaymentRequests is
         mapping(address creator => mapping(uint256 index => uint256)) _createdTokens;
         mapping(uint256 tokenId => uint256) _createdTokensIndex;
         mapping(address owner => uint256) _createdBalances;
+        string version;
     }
 
     //keccak256(abi.encode(uint256(keccak256("coinbase.storage.PaymentRequests")) - 1)) & ~bytes32(uint256(0xff));
@@ -50,7 +52,7 @@ contract PaymentRequests is
         0x9fe4f3caa6e7bcc6a7c922cbcf4c12b3cca2fd8b3e555039c554d4efe351b300; // Calculate this value
 
     function _getPaymentStorage()
-        private
+        internal
         pure
         returns (PaymentRequestStorage storage $)
     {
@@ -69,6 +71,7 @@ contract PaymentRequests is
         UUPSUpgradeable.__UUPSUpgradeable_init();
         ERC721Upgradeable.__ERC721_init("Payment Requests", "PR");
         ERC721EnumerableUpgradeable.__ERC721Enumerable_init();
+        _getPaymentStorage().version = "1.0.0";
     }
 
     function createPaymentRequest(
