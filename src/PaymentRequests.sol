@@ -248,7 +248,13 @@ contract PaymentRequests is
             description,
             "</text></svg>"
         );
-        return svg;
+         return string(
+            abi.encodePacked(
+                "data:image/svg+xml;base64,",
+                Base64.encode(bytes(svg))
+            )
+        );
+ 
     }
 
     function _authorizeUpgrade(

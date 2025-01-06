@@ -25,7 +25,7 @@ contract UpgradePaymentRequestsScript is Script {
         Upgrades.upgradeProxy(
             proxyAddress,
             "PaymentRequestsV2.sol:PaymentRequestsV2",
-             abi.encodeCall(PaymentRequestsV2.initializeV2, ("2.0.0")),
+             abi.encodeCall(PaymentRequestsV2.initializeV2, ("2.0.2")),
              owner
         );        
         vm.stopBroadcast();    

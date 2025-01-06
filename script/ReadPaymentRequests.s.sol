@@ -28,7 +28,7 @@ contract CreatePaymentRequests is Script {
         console.log("Version:", pr.getVersion());   
         console.log("Created balance of owner:", pr.createdBalanceOf(owner));
         console.log("Balance of owner:", pr.balanceOf(owner));
-
+        console.log("Token uri:", pr.tokenURI(0));
         vm.stopBroadcast();
     }
 }

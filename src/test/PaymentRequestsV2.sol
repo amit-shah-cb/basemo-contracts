@@ -11,7 +11,7 @@ contract PaymentRequestsV2 is PaymentRequests {
         _disableInitializers();
     }
 
-    function initializeV2(string calldata version) public reinitializer(2) {
+    function initializeV2(string calldata version) public reinitializer(4) {
         /* NOTE: 
         When used with inheritance, manual care must be taken to not invoke a parent initializer twice, 
         or to ensure that all initializers are idempotent. This is not verified automatically as 
