@@ -2,13 +2,14 @@
 pragma solidity ^0.8.23;
 
 import {Script} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
-import {PaymentRequests} from "../src/PaymentRequests.sol";
+import {PaymentRequestsV2} from "../src/test/PaymentRequestsV2.sol";
 
 contract CreatePaymentRequests is Script {
-    PaymentRequests public pr;
+    PaymentRequestsV2 public pr;
     ERC1967Proxy proxy;
     address owner;
     address usdc;
@@ -22,8 +23,12 @@ contract CreatePaymentRequests is Script {
         usdc = vm.envAddress("USDC_ADDRESS");
         proxyAddress = vm.envAddress("PROXY_ADDRESS");
 
-        pr = PaymentRequests(proxyAddress);  
-        pr.createPaymentRequest(usdc, owner, 100, "Test payment request");     
+        pr = PaymentRequestsV2(proxyAddress);  
+
+        console.log("Version:", pr.getVersion());   
+        console.log("Created balance of owner:", pr.createdBalanceOf(owner));
+        console.log("Balance of owner:", pr.balanceOf(owner));
+
         vm.stopBroadcast();
     }
 }

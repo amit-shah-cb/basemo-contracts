@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
 import {PaymentRequests} from "../src/PaymentRequests.sol";
 
-contract DeployBasedmo is Script {
+contract DeployPaymentRequests is Script {
     PaymentRequests public pr;
     ERC1967Proxy proxy;
     address owner;
