@@ -239,13 +239,38 @@ contract PaymentRequests is
         return $._createdTokens[creator][index];
     }
 
+    function sanitizeText(string memory input) internal pure returns (string memory) {
+        bytes memory inputBytes = bytes(input);
+        bytes memory output = new bytes(inputBytes.length);
+        uint256 outputIndex = 0;
+        
+        for (uint256 i = 0; i < inputBytes.length; i++) {
+            bytes1 char = inputBytes[i];
+            
+            // Only allow ASCII letters, numbers, spaces and basic punctuation
+            if (
+                (uint8(char) >= 32 && uint8(char) <= 126) // printable ASCII range
+            ) {
+                output[outputIndex++] = char;
+            }
+        }
+        
+        // Create final bytes array of exact length
+        bytes memory finalOutput = new bytes(outputIndex);
+        for (uint256 i = 0; i < outputIndex; i++) {
+            finalOutput[i] = output[i];
+        }
+        
+        return string(finalOutput);
+    }
+
     function getSvg(
         string memory description
     ) private pure returns (string memory) {
         string memory svg;
         svg = string.concat(
             "<svg width='350px' height='350px' viewBox='0 0 350 350' xmlns='http://www.w3.org/2000/svg'><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white'>",
-            description,
+            sanitizeText(description),
             "</text></svg>"
         );
          return string(

@@ -54,7 +54,8 @@ contract PaymentRequestsTest is Test {
         assert(keccak256(abi.encode(paymentData.publicMemo)) == keccak256(abi.encode("Test payment request")));
 
         string memory uri = pr.tokenURI(0);
-        assert(keccak256(abi.encode(uri)) == keccak256(abi.encode("data:application/json;base64,eyJuYW1lIjogIlBheW1lbnQgUmVxdWVzdCAjMCIsImRlc2NyaXB0aW9uIjogIlBheW1lbnQgUmVxdWVzdCBmcm9tIDB4YjZkNDgwNWJmNjk0M2M1ODc1YzBjN2I2N2VkYTI0YjJiZGFjYmY2ZSBmb3IgMTAwMCAweDgzMzU4Mzg0ZDBjOTZmNTAyNzE1NGUwNzViNmIzOGYzNWU5MTY1MjMiLCJpbWFnZSI6ICI8c3ZnIHdpZHRoPSczNTBweCcgaGVpZ2h0PSczNTBweCcgdmlld0JveD0nMCAwIDM1MCAzNTAnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIGRvbWluYW50LWJhc2VsaW5lPSdtaWRkbGUnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9J3doaXRlJz5UZXN0IHBheW1lbnQgcmVxdWVzdDwvdGV4dD48L3N2Zz4iLCJhdHRyaWJ1dGVzIjogW119")));        
+        
+        assert(keccak256(abi.encode(uri)) == keccak256(abi.encode("data:application/json;base64,eyJuYW1lIjogIlBheW1lbnQgUmVxdWVzdCAjMCIsImRlc2NyaXB0aW9uIjogIlBheW1lbnQgUmVxdWVzdCBmcm9tIDB4YjZkNDgwNWJmNjk0M2M1ODc1YzBjN2I2N2VkYTI0YjJiZGFjYmY2ZSBmb3IgMTAwMCAweDgzMzU4Mzg0ZDBjOTZmNTAyNzE1NGUwNzViNmIzOGYzNWU5MTY1MjMiLCJpbWFnZSI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUIzYVdSMGFEMG5NelV3Y0hnbklHaGxhV2RvZEQwbk16VXdjSGduSUhacFpYZENiM2c5SnpBZ01DQXpOVEFnTXpVd0p5QjRiV3h1Y3owbmFIUjBjRG92TDNkM2R5NTNNeTV2Y21jdk1qQXdNQzl6ZG1jblBqeDBaWGgwSUhnOUp6VXdKU2NnZVQwbk5UQWxKeUJrYjIxcGJtRnVkQzFpWVhObGJHbHVaVDBuYldsa1pHeGxKeUIwWlhoMExXRnVZMmh2Y2owbmJXbGtaR3hsSnlCbWFXeHNQU2QzYUdsMFpTYytWR1Z6ZENCd1lYbHRaVzUwSUhKbGNYVmxjM1E4TDNSbGVIUStQQzl6ZG1jKyIsImF0dHJpYnV0ZXMiOiBbXX0=")));        
         uint256 tokenIndex = pr.tokenOfOwnerByIndex(payee, 1);
         assert(tokenIndex == 1);
         paymentData = pr.getPaymentDetails(1);
