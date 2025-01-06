@@ -39,6 +39,22 @@ forge script --chain base script/DeployPaymentRequests.s.sol --rpc-url https://m
 
 ## Upgrading the contract
 
+increment the reinitializer in the src/test/PaymentRequestsV2.sol file to the next version number.
+```
+ function initializeV2(string calldata version) public reinitializer(5) { //increment 5->6 
+```
+update the version in the UpgradePaymentRequests.s.sol file to the next version number.
+e.g:
+```
+ Upgrades.upgradeProxy(
+            proxyAddress,
+            "PaymentRequestsV2.sol:PaymentRequestsV2",
+             abi.encodeCall(PaymentRequestsV2.initializeV2, ("2.0.3")), //update this to the next version number
+             owner
+        );      
+```
+
 ```bash
 forge script --chain base script/UpgradePaymentRequests.s.sol --rpc-url https://mainnet.base.org --broadcast -vvv
 ```
+
